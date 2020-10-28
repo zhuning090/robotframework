@@ -141,8 +141,8 @@ class ArgInfo(object):
         if self.type is self.NOTSET:
             return None
         if isclass(self.type):
-            if issubclass(self.type, Enum):
-                return self._format_enum(self.type)
+            #if issubclass(self.type, Enum):
+            #    return self._format_enum(self.type)
             return self.type.__name__
         return unicode(self.type)
 
