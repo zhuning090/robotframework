@@ -209,7 +209,7 @@ class KeywordDoc(Sortable):
             self.shortdoc = self._get_shortdoc()
 
     def to_dictionary(self):
-		self.parent.types.update([(arg.type_repr, arg.type) for arg in self.args if arg.type_repr])
+        self.parent.types.update([(arg.type_repr, arg.type) for arg in self.args if arg.type_repr])
         return {
             'name': self.name,
             'args': [self._arg_to_dict(arg) for arg in self.args],
