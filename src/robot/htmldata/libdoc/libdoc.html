@@ -52,6 +52,7 @@
         renderTemplate('shortcuts', libdoc);
         renderTemplate('keyword-shortcuts', libdoc);
         renderTemplate('keywords', libdoc);
+        renderTemplate('data-types', libdoc);
         renderTemplate('footer', libdoc);
         const params = util.parseQueryString(window.location.search.slice(1));
         let selectedTag = "";
@@ -261,6 +262,7 @@
       </div>
       <div id="importing-container"></div>
       <div id="keywords-container"></div>
+      <div id="data-types-container"></div>
       <div id="footer-container"></div>
     </div>
     <a class="libdoc-title" href="#library-documentation-top">
@@ -430,7 +432,9 @@
                   {{/if}}
 
                   {{if $value.type}}
-                  <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">&lt;${$value.type}&gt;</span>
+                  <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">
+                  &lt;<a href="#${$value.type}">${$value.type}</a>&gt;
+                  </span>
                   {{/if}}
                 {{/each}}
                 </div>
@@ -453,6 +457,39 @@
               <div class="kwdoc doc">{{html doc}}</div>
             </div>
           {{/if}}
+       </div>
+    </div>
+</script>
+
+<script type="text/x-jquery-tmpl" id="data-types-template">
+    <h2 id="Data types">Data types</h2>
+    <div class="data-types">
+        {{each data_types}}
+            {{tmpl($value) 'data-type-template'}}
+        {{/each}}
+    </div>
+</script>
+
+<script type="text/x-jquery-tmpl" id="data-type-template">
+    <div class="data-type-container" id="${name}">
+       <div class="keyword-name">
+            <h2>
+            <a class="kw-name" href="#${encodeURIComponent(name)}"
+               title="Link to this keyword">${name}</a>
+            </h2>
+       </div>
+       <div class="keyword-content">
+          {{if doc}}
+            <div class="kw-docs">
+              <h4>Documentation</h4>
+              <div class="kwdoc doc">{{html doc}}</div>
+            </div>
+          {{/if}}
+          <ul>
+          {{each members}}
+          <li>${$value.name}</li>
+          {{/each}}
+          </ul>
        </div>
     </div>
 </script>
