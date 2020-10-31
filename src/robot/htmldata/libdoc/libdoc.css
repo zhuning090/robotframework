@@ -347,8 +347,7 @@ input.hamburger-menu:checked ~ span.hamburger-menu-3
     .shortcuts.keyword-wall {
         display: flex;
         flex-wrap: wrap;
-        width: 640px;
-        max-width: none;
+        max-width: 640px;
     }
 }
 
