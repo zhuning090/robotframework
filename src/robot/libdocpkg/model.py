@@ -129,6 +129,7 @@ class LibraryDoc(object):
         return json.dumps(data, indent=indent)
 
     def _types_as_dict(self):
+        formatter = DocFormatter(self.keywords, self.doc)
         types = list()
         type_names = OrderedDict(sorted(self.types, key=lambda tup: tup[0]))
         for type in type_names.values():
@@ -137,7 +138,7 @@ class LibraryDoc(object):
                     enum = dict()
                     enum['name'] = type.__name__
                     enum['super'] = 'Enum'
-                    enum['doc'] = type.__doc__
+                    enum['doc'] = formatter.html(type.__doc__)
                     members = list()
                     for name, member in type._member_map_.items():
                         members.append({'name': name, 'value': member.value})
@@ -147,7 +148,7 @@ class LibraryDoc(object):
                     typed_dict = dict()
                     typed_dict['name'] = type.__name__
                     typed_dict['super'] = 'TypedDict'
-                    typed_dict['doc'] = type.__doc__
+                    typed_dict['doc'] = formatter.html(type.__doc__)
                     items = type.__annotations__
                     for key, value in items.items():
                         items[key] = value.__name__ if isclass(value) else unic(value)

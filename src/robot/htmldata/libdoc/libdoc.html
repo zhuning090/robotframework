@@ -472,24 +472,40 @@
 
 <script type="text/x-jquery-tmpl" id="data-type-template">
     <div class="data-type-container" id="${name}">
-       <div class="keyword-name">
+       <div class="data-type-name">
             <h2>
-            <a class="kw-name" href="#${encodeURIComponent(name)}"
-               title="Link to this keyword">${name}</a>
+            <a class="dt-name" href="#${encodeURIComponent(name)}"
+               title="Link to this data type">${name}</a>
             </h2>
        </div>
-       <div class="keyword-content">
-          {{if doc}}
-            <div class="kw-docs">
-              <h4>Documentation</h4>
-              <div class="kwdoc doc">{{html doc}}</div>
+       <div class="data-type-content">
+          {{if members}}
+            <div class="dt-members">
+              <h4>Allowed Values</h4>
+              <ul class="data-type-members">
+                {{each members}}
+                <li>
+                  <span>${$value.name}</span>
+                </li>
+                {{/each}}
+              </ul>
+            </div>
+          {{else items}}
+            <div class="dt-members">
+              <h4>Dictionary Structure</h4>
+                <div class="data-type-members">
+                <span class="type-dict-item">
+                 {{{each(key, val) items}}'${key}': <span>&lt;<a href="#${val}">${val}</a>&gt;</span>{{/each}}}
+                </span>
+                </div>
             </div>
           {{/if}}
-          <ul>
-          {{each members}}
-          <li>${$value.name}</li>
-          {{/each}}
-          </ul>
+          {{if doc}}
+            <div class="dt-docs">
+              <h4>Documentation</h4>
+              <div class="dtdoc doc">{{html doc}}</div>
+            </div>
+          {{/if}}
        </div>
     </div>
 </script>
