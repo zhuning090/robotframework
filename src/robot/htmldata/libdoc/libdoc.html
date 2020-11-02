@@ -49,6 +49,7 @@
         if (libdoc.inits.length) {
             renderTemplate('importing', libdoc);
         }
+        libdoc.data_types = libdoc.data_types.filter(function (d) {return d.name});
         const typeNames = libdoc.data_types.map(function (d) {return d.name});
         libdoc.keywords.forEach(function(k){
           k.args.forEach(function(arg){
