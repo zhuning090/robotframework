@@ -524,8 +524,7 @@ h4 {
 }
 
 .data-type-container {
-    border: 1px solid var(--border-color);
-    border-radius: 3px;
+    border-top: 1px solid var(--border-color);
     padding: 0.5rem 1.0rem 0.5rem 1.0rem;
     margin-bottom: 0.5rem;
     display: flex;
