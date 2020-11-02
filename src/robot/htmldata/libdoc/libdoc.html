@@ -49,6 +49,14 @@
         if (libdoc.inits.length) {
             renderTemplate('importing', libdoc);
         }
+        const typeNames = libdoc.data_types.map(function (d) {return d.name});
+        libdoc.keywords.forEach(function(k){
+          k.args.forEach(function(arg){
+            if (typeNames.indexOf(arg.type) > -1) {
+              arg.linked = true;
+            }
+          })
+        })
         renderTemplate('shortcuts', libdoc);
         renderTemplate('keyword-shortcuts', libdoc);
         renderTemplate('keywords', libdoc);
@@ -433,7 +441,11 @@
 
                   {{if $value.type}}
                   <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">
+                  {{if $value.linked}}
                   &lt;<a href="#${$value.type}">${$value.type}</a>&gt;
+                  {{else}}
+                  &lt;${$value.type}&gt;
+                  {{/if}}
                   </span>
                   {{/if}}
                 {{/each}}
