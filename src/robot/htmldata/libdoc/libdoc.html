@@ -45,19 +45,26 @@
         parseTemplates();
         document.title = libdoc.name;
         storage.init('libdoc');
-        renderTemplate('base', libdoc, $('body'));
-        if (libdoc.inits.length) {
-            renderTemplate('importing', libdoc);
-        }
         libdoc.data_types = libdoc.data_types.filter(function (d) {return d.name});
         const typeNames = libdoc.data_types.map(function (d) {return d.name});
+        libdoc.inits.forEach(function(k){
+          k.args.forEach(function(arg){
+            if (typeNames.indexOf(arg.type) > -1) {
+              arg.linked = true;
+            }
+          })
+        });
         libdoc.keywords.forEach(function(k){
           k.args.forEach(function(arg){
             if (typeNames.indexOf(arg.type) > -1) {
               arg.linked = true;
             }
           })
-        })
+        });
+        renderTemplate('base', libdoc, $('body'));
+        if (libdoc.inits.length) {
+            renderTemplate('importing', libdoc);
+        }
         renderTemplate('shortcuts', libdoc);
         renderTemplate('keyword-shortcuts', libdoc);
         renderTemplate('keywords', libdoc);
@@ -330,7 +337,14 @@
                   {{/if}}
 
                   {{if $value.type}}
-                  <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">&lt;${$value.type}&gt;</span>
+                  <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">
+                  {{if $value.linked}}
+                  &lt;<a href="#${$value.type}">${$value.type}</a>&gt;
+                  {{else}}
+                  &lt;${$value.type}&gt;
+                  {{/if}}
+                  </span>
+                  </span>
                   {{/if}}
                 {{/each}}
                 </div>
