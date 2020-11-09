@@ -16,6 +16,12 @@
 from inspect import isclass
 import sys
 try:
+    from typing import Union
+except ImportError:
+    class Union(object):
+        pass
+
+try:
     from enum import Enum
 except ImportError:    # Standard in Py 3.4+ but can be separately installed
     class Enum(object):
@@ -138,13 +144,31 @@ class ArgInfo(object):
 
     @property
     def type_repr(self):
-        if self.type is self.NOTSET:
+        return self._type_repr(self.type)
+
+    def _type_repr(self, _type):
+        if _type is self.NOTSET:
             return None
-        if isclass(self.type):
+        if isclass(_type):
             #if issubclass(self.type, Enum):
             #    return self._format_enum(self.type)
-            return self.type.__name__
-        return unicode(self.type)
+            return _type.__name__
+        if getattr(_type, '__origin__', None) is Union or isinstance(_type, tuple):
+            return '|'.join(self._type_repr(t) for t in self._get_union_args(_type))
+        return unicode(_type)
+
+    def _get_union_args(self, union):
+        if not union:
+            return ()
+        if isinstance(union, tuple):
+            return union
+        try:
+            return union.__args__
+        except AttributeError:
+            # Python 3.5.2's typing uses __union_params__ instead
+            # of __args__. This block can likely be safely removed
+            # when Python 3.5 support is dropped
+            return union.__union_params__
 
     @property
     def default_repr(self):
