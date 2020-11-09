@@ -144,18 +144,25 @@ class ArgInfo(object):
 
     @property
     def type_repr(self):
+        t = self._type_repr(self.type)
+        if not t:
+            return None
+        return  ' | '.join(t)
+
+    @property
+    def type_to_list_repr(self):
         return self._type_repr(self.type)
 
     def _type_repr(self, _type):
         if _type is self.NOTSET:
-            return None
+            return []
         if isclass(_type):
             #if issubclass(self.type, Enum):
             #    return self._format_enum(self.type)
-            return _type.__name__
+            return [_type.__name__]
         if getattr(_type, '__origin__', None) is Union or isinstance(_type, tuple):
-            return '|'.join(self._type_repr(t) for t in self._get_union_args(_type))
-        return unicode(_type)
+            return [' | '.join(self._type_repr(t)) for t in self._get_union_args(_type)]
+        return [unicode(_type)]
 
     def _get_union_args(self, union):
         if not union:

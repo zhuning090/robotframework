@@ -225,7 +225,7 @@ class KeywordDoc(Sortable):
     def _arg_to_dict(self, arg):
         return {
             'name': arg.name,
-            'type': arg.type_repr,
+            'type': arg.type_to_list_repr,
             'default': arg.default_repr,
             'kind': arg.kind,
             'required': arg.required,
