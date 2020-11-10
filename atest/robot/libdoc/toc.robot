@@ -10,6 +10,7 @@ Simple TOC
    ...    - `Second`
    ...    - `Third=entry`
    ...    - `Keywords`
+   ...    - `Data types`
    ...
    ...    = First entry =
    ...
@@ -34,6 +35,7 @@ TOC with inits and tags
    ...    - `3`
    ...    - `Importing`
    ...    - `Keywords`
+   ...    - `Data types`
    ...
    ...    = Second =
    ...
@@ -52,6 +54,7 @@ TOC in generated HTML
    ...    <li><a href="#3" class="name">3</a></li>
    ...    <li><a href="#Importing" class="name">Importing</a></li>
    ...    <li><a href="#Keywords" class="name">Keywords</a></li>
+   ...    <li><a href="#Data%20types" class="name">Data types</a></li>
    ...    </ul>
    ...    <h2 id="Second">Second</h2>
    ...    <h2 id="3">3</h2>
