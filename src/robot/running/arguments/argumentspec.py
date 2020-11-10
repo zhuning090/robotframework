@@ -15,6 +15,7 @@
 
 from inspect import isclass
 import sys
+
 try:
     from typing import Union
 except ImportError:
@@ -23,7 +24,7 @@ except ImportError:
 
 try:
     from enum import Enum
-except ImportError:    # Standard in Py 3.4+ but can be separately installed
+except ImportError:  # Standard in Py 3.4+ but can be separately installed
     class Enum(object):
         pass
 
@@ -133,7 +134,7 @@ class ArgInfo(object):
         self.name = name
         self.type = tuple(type) if isinstance(type, list) else type
         if self.type == ():
-            self.type=ArgInfo.NOTSET
+            self.type = ArgInfo.NOTSET
         self.default = default
 
     @property
@@ -149,7 +150,7 @@ class ArgInfo(object):
         t = self._type_repr(self.type)
         if not t:
             return None
-        return  ' | '.join(t)
+        return ' | '.join(t)
 
     @property
     def type_to_list_repr(self):
