@@ -132,6 +132,8 @@ class ArgInfo(object):
         self.kind = kind
         self.name = name
         self.type = tuple(type) if isinstance(type, list) else type
+        if self.type == ():
+            self.type=ArgInfo.NOTSET
         self.default = default
 
     @property
