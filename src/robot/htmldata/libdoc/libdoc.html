@@ -41,26 +41,24 @@
 </script>
 
 <script type="text/javascript">
+
+    function linkArgs(container, typeNames) {
+      container.forEach(function(k) {
+          k.args.forEach(function (arg) {
+            arg.linked = arg.type.filter(value => typeNames.includes(value)).length > 0;
+          })
+        }
+      );
+    }
+
     $(document).ready(function() {
         parseTemplates();
         document.title = libdoc.name;
         storage.init('libdoc');
         libdoc.data_types = libdoc.data_types.filter(function (d) {return d.name});
         const typeNames = libdoc.data_types.map(function (d) {return d.name});
-        libdoc.inits.forEach(function(k){
-          k.args.forEach(function(arg){
-            if (typeNames.indexOf(arg.type) > -1) {
-              arg.linked = true;
-            }
-          })
-        });
-        libdoc.keywords.forEach(function(k){
-          k.args.forEach(function(arg){
-            if (typeNames.indexOf(arg.type) > -1) {
-              arg.linked = true;
-            }
-          })
-        });
+        linkArgs(libdoc.inits, typeNames);
+        linkArgs(libdoc.keywords, typeNames);
         renderTemplate('base', libdoc, $('body'));
         if (libdoc.inits.length) {
             renderTemplate('importing', libdoc);
