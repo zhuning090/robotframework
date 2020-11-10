@@ -131,7 +131,7 @@ class ArgInfo(object):
     def __init__(self, kind, name='', type=NOTSET, default=NOTSET):
         self.kind = kind
         self.name = name
-        self.type = type
+        self.type = tuple(type) if isinstance(type, list) else type
         self.default = default
 
     @property
