@@ -154,10 +154,10 @@
           "type": "string"
         },
         "type": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "default": {
           "type": [

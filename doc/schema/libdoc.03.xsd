@@ -96,7 +96,7 @@
     <xs:complexType name="Argument">
         <xs:sequence>
             <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1" />
-            <xs:element name="type" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="type" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="default" type="xs:string" minOccurs="0" maxOccurs="1" />
         </xs:sequence>
         <xs:attribute name="kind" type="Kind" use="required" />

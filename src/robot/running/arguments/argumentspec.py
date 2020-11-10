@@ -132,10 +132,27 @@ class ArgInfo(object):
     def __init__(self, kind, name='', type=NOTSET, default=NOTSET):
         self.kind = kind
         self.name = name
-        self.type = tuple(type) if isinstance(type, list) else type
-        if self.type == ():
-            self.type = ArgInfo.NOTSET
+        self.type = type
         self.default = default
+
+    @setter
+    def type(self, _type):
+        if not _type or _type is self.NOTSET:
+            return tuple()
+        if isinstance(_type, (tuple, list)):
+            return tuple(_type)
+        if getattr(_type, '__origin__', None) is Union:
+            return self._get_union_args(_type)
+        return (_type,)
+
+    def _get_union_args(self, union):
+        try:
+            return union.__args__
+        except AttributeError:
+            # Python 3.5.2's typing uses __union_params__ instead
+            # of __args__. This block can likely be safely removed
+            # when Python 3.5 support is dropped
+            return union.__union_params__
 
     @property
     def required(self):
@@ -147,38 +164,23 @@ class ArgInfo(object):
 
     @property
     def type_repr(self):
-        t = self._type_repr(self.type)
+        t = self.type_as_repr_list
         if not t:
             return None
         return ' | '.join(t)
 
     @property
-    def type_to_list_repr(self):
-        return self._type_repr(self.type)
+    def type_as_repr_list(self):
+        return [self._type_repr(t) for t in self.type]
 
     def _type_repr(self, _type):
-        if _type is self.NOTSET:
-            return []
+        if _type == type(None):  # Todo @mikko: any better idea?
+            return 'None'
         if isclass(_type):
-            #if issubclass(self.type, Enum):
-            #    return self._format_enum(self.type)
-            return [_type.__name__]
-        if getattr(_type, '__origin__', None) is Union or isinstance(_type, tuple):
-            return [' | '.join(self._type_repr(t)) for t in self._get_union_args(_type)]
-        return [unicode(_type)]
-
-    def _get_union_args(self, union):
-        if not union:
-            return ()
-        if isinstance(union, tuple):
-            return union
-        try:
-            return union.__args__
-        except AttributeError:
-            # Python 3.5.2's typing uses __union_params__ instead
-            # of __args__. This block can likely be safely removed
-            # when Python 3.5 support is dropped
-            return union.__union_params__
+            # if issubclass(_type, Enum):
+            #    return self._format_enum(_type)
+            return _type.__name__
+        return unic(_type).replace('typing.', '', 1)  # Todo @mikko: Any better idea?
 
     @property
     def default_repr(self):
@@ -188,14 +190,14 @@ class ArgInfo(object):
             return self.default.name
         return unic(self.default)
 
-    def _format_enum(self, enum):
-        try:
-            members = list(enum.__members__)
-        except AttributeError:  # old enum module
-            members = [attr for attr in dir(enum) if not attr.startswith('_')]
-        while len(members) > 3 and len(' | '.join(members)) > 42:
-            members[-2:] = ['...']
-        return '%s { %s }' % (enum.__name__, ' | '.join(members))
+    # def _format_enum(self, enum):
+    #     try:
+    #         members = list(enum.__members__)
+    #     except AttributeError:  # old enum module
+    #         members = [attr for attr in dir(enum) if not attr.startswith('_')]
+    #     while len(members) > 3 and len(' | '.join(members)) > 42:
+    #         members[-2:] = ['...']
+    #     return '%s { %s }' % (enum.__name__, ' | '.join(members))
 
     def __unicode__(self):
         if self.kind == self.POSITIONAL_ONLY_MARKER:
@@ -207,7 +209,7 @@ class ArgInfo(object):
             ret = '*' + ret
         elif self.kind == self.VAR_NAMED:
             ret = '**' + ret
-        if self.type is not self.NOTSET:
+        if self.type:
             ret = '%s: %s' % (ret, self.type_repr)
             default_sep = ' = '
         else:

@@ -13,8 +13,8 @@ Enums
     ...                                  big: Big
 
 With defaults
-    Keyword Arguments Should Be     2    integer: int = 42    list_: list = None
-    ...                                  enum: Small = None
+    Keyword Arguments Should Be     2    integer: int = 42    list_: list | None = None
+    ...                                  enum: Small | None = None
 
 Keyword-only arguments
     Keyword Arguments Should Be     3    *    kwo: int    with_default: str = value

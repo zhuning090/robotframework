@@ -13,17 +13,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from collections import OrderedDict
-from copy import copy
 from inspect import isclass
 from itertools import chain
 import json
 import re
 from enum import Enum
 try:
-    import typing_extensions
-    from typing import TypedDict
+    from typing_extensions import TypedDict
+
+    class _TypedDictDummy(TypedDict):
+        pass
+    TypedDictType = type(_TypedDictDummy)
 except ImportError:
-    pass
+    TypedDictType = None
 
 from robot.model import Tags
 from robot.utils import IRONPYTHON, getshortdoc, get_timestamp, Sortable, setter, unicode, unic, PY3
@@ -48,13 +50,17 @@ class LibraryDoc(object):
         self.lineno = lineno
         self.inits = []
         self.keywords = []
-        self.types = set()
+        self._types = set()
 
     @property
     def doc(self):
         if self.doc_format == 'ROBOT' and '%TOC%' in self._doc:
             return self._add_toc(self._doc)
         return self._doc
+
+    @property
+    def types(self):
+        return OrderedDict(sorted(self._types, key=lambda tup: tup[0]))
 
     def _add_toc(self, doc):
         toc = self._create_toc(doc)
@@ -75,14 +81,18 @@ class LibraryDoc(object):
 
     @setter
     def inits(self, inits):
-        return self._add_parent(inits)
+        return self._sort_keywords(inits)
 
     @setter
     def keywords(self, kws):
-        return self._add_parent(kws)
+        return self._sort_keywords(kws)
 
-    def _add_parent(self, kws):
+    def _sort_keywords(self, kws):
         for keyword in kws:
+            for arg in keyword.args:
+                if arg.type:
+                    for type_repr, _type in zip(arg.type_as_repr_list, arg.type):
+                        self._types.add((type_repr, _type))
             keyword.parent = self
             keyword.generate_shortdoc()
         return sorted(kws)
@@ -118,7 +128,7 @@ class LibraryDoc(object):
             'keywords': [kw.to_dictionary() for kw in self.keywords],
             'generated': get_timestamp(daysep='-', millissep=None),
             'all_tags': list(self.all_tags),
-            'data_types': self._types_as_dict()
+            'data_types': self._types_as_list()
         }
 
     def to_json(self, indent=None):
@@ -128,34 +138,35 @@ class LibraryDoc(object):
             data = self._unicode_to_utf8(data)
         return json.dumps(data, indent=indent)
 
-    def _types_as_dict(self):
-        formatter = DocFormatter(self.keywords, self.doc)
+    def _types_as_list(self):
         types = list()
-        type_names = OrderedDict(sorted(self.types, key=lambda tup: tup[0]))
-        for type in type_names.values():
-            if isclass(type):
-                if issubclass(type, Enum):
+        type_names = self.types
+        for arg_type in type_names.values():
+            if isclass(arg_type):
+                if issubclass(arg_type, Enum):
                     enum = dict()
-                    enum['name'] = type.__name__
+                    enum['name'] = arg_type.__name__
                     enum['super'] = 'Enum'
-                    enum['doc'] = type.__doc__
+                    enum['doc'] = arg_type.__doc__
                     members = list()
-                    for name, member in type._member_map_.items():
+                    for name, member in arg_type._member_map_.items():
                         members.append({'name': name, 'value': member.value})
                     enum['members'] = members
                     types.append(enum)
-                elif PY3 and isinstance(type, typing_extensions._TypedDictMeta):
+                elif TypedDictType and isinstance(arg_type, TypedDictType):
                     typed_dict = dict()
-                    typed_dict['name'] = type.__name__
+                    typed_dict['name'] = arg_type.__name__
                     typed_dict['super'] = 'TypedDict'
-                    typed_dict['doc'] = type.__doc__
-                    items = type.__annotations__
+                    typed_dict['doc'] = arg_type.__doc__
+                    items = arg_type.__annotations__
                     for key, value in items.items():
                         items[key] = value.__name__ if isclass(value) else unic(value)
                     typed_dict['items'] = items
+                    typed_dict['required_keys'] = list(arg_type.__required_keys__)
+                    typed_dict['optional_keys'] = list(arg_type.__optional_keys__)
                     types.append(typed_dict)
-                else:
-                    types.append(type.__name__)
+                elif arg_type not in (bool, int, float, str, list, tuple, dict, type(None)):
+                    types.append({'name': arg_type.__name__, 'doc': arg_type.__doc__})
         return types
 
     def _unicode_to_utf8(self, data):
@@ -211,7 +222,6 @@ class KeywordDoc(Sortable):
             self.shortdoc = self._get_shortdoc()
 
     def to_dictionary(self):
-        self.parent.types.update([(arg.type_repr, arg.type) for arg in self.args if arg.type_repr])
         return {
             'name': self.name,
             'args': [self._arg_to_dict(arg) for arg in self.args],
@@ -225,7 +235,7 @@ class KeywordDoc(Sortable):
     def _arg_to_dict(self, arg):
         return {
             'name': arg.name,
-            'type': arg.type_to_list_repr,
+            'type': arg.type_as_repr_list,
             'default': arg.default_repr,
             'kind': arg.kind,
             'required': arg.required,
