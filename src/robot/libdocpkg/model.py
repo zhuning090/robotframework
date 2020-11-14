@@ -12,12 +12,12 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from collections import OrderedDict
 from inspect import isclass
 from itertools import chain
 import json
 import re
 from enum import Enum
+
 try:
     from typing_extensions import TypedDict
 
@@ -28,7 +28,8 @@ except ImportError:
     TypedDictType = None
 
 from robot.model import Tags
-from robot.utils import IRONPYTHON, getshortdoc, get_timestamp, Sortable, setter, unicode, unic, PY3
+from robot.utils import (IRONPYTHON, getshortdoc, get_timestamp,
+                         Sortable, setter, unicode, unic)
 
 from .htmlutils import HtmlToText, DocFormatter
 from .writer import LibdocWriter
@@ -48,9 +49,16 @@ class LibraryDoc(object):
         self.doc_format = doc_format
         self.source = source
         self.lineno = lineno
+        self._data_types = dict()
         self.inits = []
         self.keywords = []
-        self._types = set()
+
+    @setter
+    def data_types(self, data_types):
+        self._data_types = dict([(t.name, t)
+                                 for t in
+                                 [self._get_type_doc(_type)
+                                  for _type in data_types]])
 
     @property
     def doc(self):
@@ -59,8 +67,10 @@ class LibraryDoc(object):
         return self._doc
 
     @property
-    def types(self):
-        return OrderedDict(sorted(self._types, key=lambda tup: tup[0]))
+    def data_types_list(self):
+        return sorted([type_tuple[1].to_dictionary()
+                       for type_tuple in self._data_types.items()],
+                      key=lambda type_dict: type_dict['name'])
 
     def _add_toc(self, doc):
         toc = self._create_toc(doc)
@@ -89,13 +99,40 @@ class LibraryDoc(object):
 
     def _sort_keywords(self, kws):
         for keyword in kws:
-            for arg in keyword.args:
-                if arg.type:
-                    for type_repr, _type in zip(arg.type_as_repr_list, arg.type):
-                        self._types.add((type_repr, _type))
+            self._add_types_from_keyword(keyword)
             keyword.parent = self
             keyword.generate_shortdoc()
         return sorted(kws)
+
+    def _add_types_from_keyword(self, keyword):
+        for arg in keyword.args:
+            if arg.type:
+                for type_repr, _type in zip(arg.type_as_repr_list, arg.type):
+                    if (type_repr not in self._data_types
+                            and isinstance(_type, type)
+                            and type(_type) is not type):
+                        self._data_types[type_repr] = self._get_type_doc(_type)
+
+    def _get_type_doc(self, arg_type):
+        if self._is_TypedDictType(arg_type):
+            return TypedDictDoc(arg_type)
+        elif self._is_EnumType(arg_type):
+            return EnumDoc(arg_type)
+
+    def _is_TypedDictType(self, arg_type):
+        return (TypedDictType
+                and isclass(arg_type)
+                and isinstance(arg_type, TypedDictType)
+                ) or (
+                isinstance(arg_type, dict)
+                and arg_type.get('super', None) == 'TypedDict')
+
+    def _is_EnumType(self, arg_type):
+        return (isclass(arg_type)
+                and issubclass(arg_type, Enum)
+                ) or (
+                isinstance(arg_type, dict)
+                and arg_type.get('super', None) == 'Enum')
 
     @property
     def all_tags(self):
@@ -113,6 +150,8 @@ class LibraryDoc(object):
             init.doc = formatter.html(init.doc)
         for keyword in self.keywords:
             keyword.doc = formatter.html(keyword.doc)
+        for type_doc in self._data_types.values():
+            type_doc.doc = formatter.html(type_doc.doc)
 
     def to_dictionary(self):
         return {
@@ -128,7 +167,7 @@ class LibraryDoc(object):
             'keywords': [kw.to_dictionary() for kw in self.keywords],
             'generated': get_timestamp(daysep='-', millissep=None),
             'all_tags': list(self.all_tags),
-            'data_types': self._types_as_list()
+            'data_types': self.data_types_list
         }
 
     def to_json(self, indent=None):
@@ -138,35 +177,20 @@ class LibraryDoc(object):
             data = self._unicode_to_utf8(data)
         return json.dumps(data, indent=indent)
 
-    def _types_as_list(self):
+    def _types_as_list(self, sorted_types):
         types = list()
-        type_names = self.types
-        for arg_type in type_names.values():
+        for arg_name, arg_type in sorted_types:
             if isclass(arg_type):
                 if issubclass(arg_type, Enum):
-                    enum = dict()
-                    enum['name'] = arg_type.__name__
-                    enum['super'] = 'Enum'
-                    enum['doc'] = arg_type.__doc__
-                    members = list()
-                    for name, member in arg_type._member_map_.items():
-                        members.append({'name': name, 'value': member.value})
-                    enum['members'] = members
-                    types.append(enum)
+                    types.append(EnumDoc(arg_type))
                 elif TypedDictType and isinstance(arg_type, TypedDictType):
-                    typed_dict = dict()
-                    typed_dict['name'] = arg_type.__name__
-                    typed_dict['super'] = 'TypedDict'
-                    typed_dict['doc'] = arg_type.__doc__
-                    items = arg_type.__annotations__
-                    for key, value in items.items():
-                        items[key] = value.__name__ if isclass(value) else unic(value)
-                    typed_dict['items'] = items
-                    typed_dict['required_keys'] = list(arg_type.__required_keys__)
-                    typed_dict['optional_keys'] = list(arg_type.__optional_keys__)
-                    types.append(typed_dict)
-                elif arg_type not in (bool, int, float, str, list, tuple, dict, type(None)):
-                    types.append({'name': arg_type.__name__, 'doc': arg_type.__doc__})
+                    types.append(TypedDictDoc(arg_type))
+            elif isinstance(arg_type, dict):
+                _super = arg_type.get('super', None)
+                if _super == 'Enum':
+                    types.append(EnumDoc(arg_type))
+                elif _super == 'TypedDict':
+                    types.append(TypedDictDoc(arg_type))
         return types
 
     def _unicode_to_utf8(self, data):
@@ -240,4 +264,94 @@ class KeywordDoc(Sortable):
             'kind': arg.kind,
             'required': arg.required,
             'repr': unicode(arg)
+        }
+
+
+class TypedDictDoc:
+
+    def __init__(self,
+                 type_info=None,
+                 *,
+                 name='',
+                 super='',
+                 doc='',
+                 items=None,
+                 required_keys=None,
+                 optional_keys=None):
+        self.name = name
+        self.super = super
+        self.doc = doc
+        self.items = items if items else dict()
+        self.required_keys = required_keys if required_keys else list()
+        self.optional_keys = optional_keys if optional_keys else list()
+        if isinstance(type_info, dict):
+            self.name = type_info['name']
+            self.super = type_info['super']
+            self.doc = type_info['doc']
+            self.items = type_info['items']
+            self.required_keys = type_info['required_keys']
+            self.optional_keys = type_info['optional_keys']
+        elif TypedDictType and isinstance(type_info, TypedDictType):
+            self.name = type_info.__name__
+            self.super = 'TypedDict'
+            self.doc = type_info.__doc__ if type_info.__doc__ else ''
+            for key, value in type_info.__annotations__.items():
+                self.items[key] = value.__name__ if isclass(value) else unic(value)
+            self.required_keys = list(type_info.__required_keys__)
+            self.optional_keys = list(type_info.__optional_keys__)
+        elif isinstance(type_info, TypedDictDoc):
+            self.name = type_info.name
+            self.super = type_info.super
+            self.doc = type_info.doc
+            self.items = type_info.items
+            self.required_keys = type_info.required_keys
+            self.optional_keys = type_info.optional_keys
+
+    def to_dictionary(self):
+        return {
+            'name': self.name,
+            'super': self.super,
+            'doc': self.doc,
+            'items': self.items,
+            'required_keys': self.required_keys,
+            'optional_keys': self.optional_keys
+        }
+
+
+class EnumDoc:
+
+    def __init__(self,
+                 type_info=None,
+                 *,
+                 name='',
+                 super='',
+                 doc='',
+                 members=None):
+        self.name = name
+        self.super = super
+        self.doc = doc
+        self.members = members if members else list()
+        if isinstance(type_info, dict):
+            self.name = type_info['name']
+            self.super = type_info['super']
+            self.doc = type_info['doc']
+            self.members = type_info['members']
+        elif isclass(type_info) and issubclass(type_info, Enum):
+            self.name = type_info.__name__
+            self.super = 'Enum'
+            self.doc = type_info.__doc__ if type_info.__doc__ else ''
+            for name, member in type_info._member_map_.items():
+                self.members.append({'name': name, 'value': member.value})
+        elif isinstance(type_info, EnumDoc):
+            self.name = type_info.name
+            self.super = type_info.super
+            self.doc = type_info.doc
+            self.members = type_info.members
+
+    def to_dictionary(self):
+        return {
+            'name': self.name,
+            'super': self.super,
+            'doc': self.doc,
+            'members': self.members
         }

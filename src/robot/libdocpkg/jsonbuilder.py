@@ -37,6 +37,7 @@ class JsonDocBuilder(object):
                             doc_format=spec['doc_format'],
                             source=spec['source'],
                             lineno=int(spec.get('lineno', -1)))
+        libdoc.data_types = spec['data_types']
         libdoc.inits = [self._create_keyword(kw) for kw in spec['inits']]
         libdoc.keywords = [self._create_keyword(kw) for kw in spec['keywords']]
         return libdoc
@@ -72,7 +73,7 @@ class JsonDocBuilder(object):
             name = arg['name']
             setters[arg['kind']](name)
             default = arg['default']
-            if default:
+            if default is not None:
                 spec.defaults[name] = default
             arg_type = arg['type']
             if arg_type is not None:

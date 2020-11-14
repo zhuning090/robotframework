@@ -174,13 +174,11 @@ class ArgInfo(object):
         return [self._type_repr(t) for t in self.type]
 
     def _type_repr(self, _type):
-        if _type == type(None):  # Todo @mikko: any better idea?
+        if _type == type(None):
             return 'None'
         if isclass(_type):
-            # if issubclass(_type, Enum):
-            #    return self._format_enum(_type)
             return _type.__name__
-        return unic(_type).replace('typing.', '', 1)  # Todo @mikko: Any better idea?
+        return unic(_type).replace('typing.', '', 1)
 
     @property
     def default_repr(self):
@@ -189,15 +187,6 @@ class ArgInfo(object):
         if isinstance(self.default, Enum):
             return self.default.name
         return unic(self.default)
-
-    # def _format_enum(self, enum):
-    #     try:
-    #         members = list(enum.__members__)
-    #     except AttributeError:  # old enum module
-    #         members = [attr for attr in dir(enum) if not attr.startswith('_')]
-    #     while len(members) > 3 and len(' | '.join(members)) > 42:
-    #         members[-2:] = ['...']
-    #     return '%s { %s }' % (enum.__name__, ' | '.join(members))
 
     def __unicode__(self):
         if self.kind == self.POSITIONAL_ONLY_MARKER:
