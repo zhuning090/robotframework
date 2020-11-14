@@ -73,6 +73,16 @@
         "$ref": "#/definitions/keyword"
       },
       "uniqueItems": true
+    },
+    "data_types": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"$ref": "#/definitions/typed_dict_type"},
+          {"$ref": "#/definitions/enum_type"}
+        ]
+      },
+      "uniqueItems": true
     }
   },
   "required": [
@@ -87,6 +97,7 @@
     "lineno",
     "inits",
     "keywords",
+    "data_types",
     "all_tags"
   ],
   "definitions": {
@@ -182,6 +193,93 @@
         },
         "repr": {
           "type": "string"
+        }
+      }
+    },
+    "enum_type": {
+      "$id": "#/definitions/enum_type",
+      "type": "object",
+      "title": "Enum DataType schema",
+      "required": [
+        "name",
+        "super",
+        "doc",
+        "members"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "super": {
+          "type": "string"
+        },
+        "doc": {
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/enum_member"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "enum_member": {
+      "$id": "#/definitions/enum_member",
+      "type": "object",
+      "title": "Enum Member schema",
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "typed_dict_type": {
+      "$id": "#/definitions/typed_dict_type",
+      "type": "object",
+      "title": "TypedDict Type schema",
+      "required": [
+        "name",
+        "super",
+        "doc",
+        "items",
+        "required_keys",
+        "optional_keys"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "super": {
+          "type": "string"
+        },
+        "doc": {
+          "type": "string"
+        },
+        "items": {
+          "type": "object"
+        },
+        "required_keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "optional_keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
         }
       }
     }

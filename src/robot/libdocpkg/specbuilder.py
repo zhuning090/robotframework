@@ -19,7 +19,7 @@ from robot.errors import DataError
 from robot.utils import ET, ETSource
 from robot.running.arguments import ArgumentSpec, ArgInfo
 
-from .model import LibraryDoc, KeywordDoc
+from .model import LibraryDoc, KeywordDoc, EnumDoc, TypedDictDoc
 
 
 class SpecDocBuilder(object):
@@ -36,6 +36,7 @@ class SpecDocBuilder(object):
                             lineno=int(spec.get('lineno', -1)))
         libdoc.inits = self._create_keywords(spec, 'inits/init')
         libdoc.keywords = self._create_keywords(spec, 'keywords/kw')
+        libdoc.data_types = self._create_data_types(spec)
         return libdoc
 
     def _parse_spec(self, path):
@@ -85,9 +86,41 @@ class SpecDocBuilder(object):
             default_elem = arg.find('default')
             if default_elem is not None:
                 spec.defaults[name] = default_elem.text or ''
-            type_elem = arg.find('type')
-            if type_elem is not None:
+            type_elems = arg.findall('type')
+            if type_elems is not None:
                 if not spec.types:
                     spec.types = {}
-                spec.types[name] = type_elem.text
+                spec.types[name] = [t.text for t in type_elems]
         return spec
+
+    def _create_data_types(self, spec):
+        return [self._create_data_type(dt) for dt in spec.findall('data_types/dt')]
+
+    def _create_data_type(self, dt):
+        name = dt.get('name')
+        super = dt.get('super')
+        doc = dt.find('doc').text or ''
+        if super == 'Enum':
+            return EnumDoc(name=name,
+                           super=super,
+                           doc=doc,
+                           members=[{'name': member.get('name'),
+                                     'value': member.get('value')}
+                                    for member in dt.findall('members/member')])
+        elif super == 'TypedDict':
+            items = dict()
+            required_keys = list()
+            optional_keys = list()
+            for item in dt.findall('items/item'):
+                key = item.get('key')
+                items[key] = item.get('value')
+                if item.get('required') == 'true':
+                    required_keys.append(key)
+                else:
+                    optional_keys.append(key)
+            return TypedDictDoc(name=name,
+                                super=super,
+                                doc=doc,
+                                items=items,
+                                required_keys=required_keys,
+                                optional_keys=optional_keys)
