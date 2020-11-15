@@ -480,12 +480,14 @@
 </script>
 
 <script type="text/x-jquery-tmpl" id="data-types-template">
+    {{if data_types.length}}
     <h2 id="Data types">Data types</h2>
     <div class="data-types">
         {{each data_types}}
             {{tmpl($value) 'data-type-template'}}
         {{/each}}
     </div>
+    {{/if}}
 </script>
 
 <script type="text/x-jquery-tmpl" id="data-type-template">
@@ -513,11 +515,11 @@
               <h4>Dictionary Structure</h4>
                 <div class="typed-dict-annotation">
                 <span class="typed-dict-item">
-                 {{{each(key, val) items}}<span
-                 class="{{if required_keys.indexOf(key) != -1}}required-key{{else}}optional-key{{/if}}"
+                 {{{each(key, val) items}}<br><span
+                 class="td-item {{if required_keys.indexOf(key) != -1}}required-key{{else}}optional-key{{/if}}"
                  title="{{if required_keys.indexOf(key) != -1}}required key{{else}}optional key{{/if}}"
                  >'${key}': </span>
-                   <span class="td-type">&lt;${val}&gt;</span>{{/each}}}
+                   <span class="td-type">&lt;${val}&gt;</span>{{/each}}<br>}
                 </span>
                 </div>
             </div>

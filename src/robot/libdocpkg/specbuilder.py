@@ -97,30 +97,24 @@ class SpecDocBuilder(object):
         return [self._create_data_type(dt) for dt in spec.findall('data_types/dt')]
 
     def _create_data_type(self, dt):
-        name = dt.get('name')
-        super = dt.get('super')
-        doc = dt.find('doc').text or ''
-        if super == 'Enum':
-            return EnumDoc(name=name,
-                           super=super,
-                           doc=doc,
-                           members=[{'name': member.get('name'),
-                                     'value': member.get('value')}
-                                    for member in dt.findall('members/member')])
-        elif super == 'TypedDict':
-            items = dict()
-            required_keys = list()
-            optional_keys = list()
+        args = dict()
+        args['name'] = dt.get('name')
+        args['super'] = dt.get('super')
+        args['doc'] = dt.find('doc').text or ''
+        if args['super'] == 'Enum':
+            args['members'] = [
+                {'name': member.get('name'), 'value': member.get('value')}
+                for member in dt.findall('members/member')]
+            return EnumDoc(**args)
+        elif args['super'] == 'TypedDict':
+            args['items'] = dict()
+            args['required_keys'] = list()
+            args['optional_keys'] = list()
             for item in dt.findall('items/item'):
                 key = item.get('key')
-                items[key] = item.get('value')
+                args['items'][key] = item.get('value')
                 if item.get('required') == 'true':
-                    required_keys.append(key)
+                    args['required_keys'].append(key)
                 else:
-                    optional_keys.append(key)
-            return TypedDictDoc(name=name,
-                                super=super,
-                                doc=doc,
-                                items=items,
-                                required_keys=required_keys,
-                                optional_keys=optional_keys)
+                    args['optional_keys'].append(key)
+            return TypedDictDoc(**args)

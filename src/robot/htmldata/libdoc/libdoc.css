@@ -559,7 +559,6 @@ h4 {
     min-width: 200px;
 }
 
-.typed-dict-annotation > span,
 .enum-type-members span,
 .args span,
 .args a
@@ -596,8 +595,22 @@ a.type {
 .typed-dict-item .td-type::after {
     content: ',';
 }
-.typed-dict-item .td-type:nth-last-child(1)::after {
+
+.typed-dict-item .td-type:nth-last-child(2)::after {
     content: '';
+}
+
+.td-item::before {
+    content: '  ';
+    white-space: pre;
+}
+
+.typed-dict-item {
+    display: block;
+    padding: 0.4rem;
+    font-family: monospace;
+    background: var(--light-background-color);
+    font-size: 1.1em;
 }
 
 .args span .highlight {

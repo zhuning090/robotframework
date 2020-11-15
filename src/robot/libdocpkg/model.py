@@ -89,8 +89,10 @@ class LibraryDoc(object):
         entries = re.findall(r'^\s*=\s+(.+?)\s+=\s*$', doc, flags=re.MULTILINE)
         if self.inits:
             entries.append('Importing')
-        entries.append('Keywords')
-        entries.append('Data types')
+        if self.keywords:
+            entries.append('Keywords')
+        if self.data_types:
+            entries.append('Data types')
         return '\n'.join('- `%s`' % entry for entry in entries)
 
     @setter
@@ -170,15 +172,15 @@ class LibraryDoc(object):
             'name': self.name,
             'doc': self.doc,
             'version': self.version,
+            'generated': get_timestamp(daysep='-', millissep=None),
             'type': self.type,
             'scope': self.scope,
             'doc_format': self.doc_format,
             'source': self.source,
             'lineno': self.lineno,
+            'all_tags': list(self.all_tags),
             'inits': [init.to_dictionary() for init in self.inits],
             'keywords': [kw.to_dictionary() for kw in self.keywords],
-            'generated': get_timestamp(daysep='-', millissep=None),
-            'all_tags': list(self.all_tags),
             'data_types': [dt.to_dictionary() for dt in self.data_types_list]
         }
 
@@ -188,22 +190,6 @@ class LibraryDoc(object):
             # Workaround for https://github.com/IronLanguages/ironpython2/issues/643
             data = self._unicode_to_utf8(data)
         return json.dumps(data, indent=indent)
-
-    def _types_as_list(self, sorted_types):
-        types = list()
-        for arg_name, arg_type in sorted_types:
-            if isclass(arg_type):
-                if issubclass(arg_type, Enum):
-                    types.append(EnumDoc(arg_type))
-                elif TypedDictType and isinstance(arg_type, TypedDictType):
-                    types.append(TypedDictDoc(arg_type))
-            elif isinstance(arg_type, dict):
-                _super = arg_type.get('super', None)
-                if _super == 'Enum':
-                    types.append(EnumDoc(arg_type))
-                elif _super == 'TypedDict':
-                    types.append(TypedDictDoc(arg_type))
-        return types
 
     def _unicode_to_utf8(self, data):
         if isinstance(data, dict):
@@ -310,13 +296,6 @@ class TypedDictDoc:
                 self.items[key] = value.__name__ if isclass(value) else unic(value)
             self.required_keys = list(type_info.__required_keys__)
             self.optional_keys = list(type_info.__optional_keys__)
-        elif isinstance(type_info, TypedDictDoc):
-            self.name = type_info.name
-            self.super = type_info.super
-            self.doc = type_info.doc
-            self.items = type_info.items
-            self.required_keys = type_info.required_keys
-            self.optional_keys = type_info.optional_keys
 
     def to_dictionary(self):
         return {
@@ -352,11 +331,6 @@ class EnumDoc:
             self.doc = type_info.__doc__ if type_info.__doc__ else ''
             for name, member in type_info._member_map_.items():
                 self.members.append({'name': name, 'value': unicode(member.value)})
-        elif isinstance(type_info, EnumDoc):
-            self.name = type_info.name
-            self.super = type_info.super
-            self.doc = type_info.doc
-            self.members = type_info.members
 
     def to_dictionary(self):
         return {
