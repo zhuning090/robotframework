@@ -502,7 +502,7 @@ Default value is used if explicit type conversion fails
 
 Explicit conversion failure is used if both conversions fail
     [Template]    Conversion Should Fail
-    Type and default 1    BANG!    type=list or None         error=Invalid expression.
+    Type and default 1    BANG!    type=list         error=Invalid expression.
     Type and default 3    BANG!    type=timedelta    error=Invalid time string 'BANG!'.
 
 Multiple types using Union
