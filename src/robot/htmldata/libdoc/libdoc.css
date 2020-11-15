@@ -280,7 +280,8 @@ input.hamburger-menu:checked ~ span.hamburger-menu-3
     row-gap: 3px;
 }
 
-.data-type-members span,
+.typed-dict-annotation > span,
+.enum-type-members span,
 .arguments-list .arg-name {
     -ms-grid-column: 1;
     grid-column: 1;
@@ -297,6 +298,7 @@ input.hamburger-menu:checked ~ span.hamburger-menu-3
     display: flex;
 }
 
+.optional-key,
 .arguments-list .arg-optional {
     font-style: italic;
 }
@@ -525,9 +527,8 @@ h4 {
     flex-direction: column;
 }
 
-.data-type-members{
+.enum-type-members{
     list-style: none;
-
 }
 
 .data-type-container {
@@ -558,18 +559,44 @@ h4 {
     min-width: 200px;
 }
 
-.data-type-members span,
-.args span {
+.typed-dict-annotation > span,
+.enum-type-members span,
+.args span,
+.args a
+ {
     font-family: monospace;
     background: var(--light-background-color);
     padding: 0 0.1em;
     font-size: 1.1em;
 }
 
-.data-type-members span span::after {
+span.type,
+a.type {
+    font-size: 1em;
+    background: none;
+    padding: 0 0
+}
+
+.type::before {
+    content: '|';
+    color: var(--text-color);
+    padding: 0 0;
+}
+
+.type:nth-child(1)::before {
+    content: '';
+    padding: 0 0 0 0.1em
+}
+
+.type:nth-last-child(1)::after {
+    content: '';
+    padding: 0 0 0 0.1em
+}
+
+.typed-dict-item .td-type::after {
     content: ',';
 }
-.data-type-members span:nth-last-child(1)::after {
+.typed-dict-item .td-type:nth-last-child(1)::after {
     content: '';
 }
 

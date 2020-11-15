@@ -57,7 +57,11 @@ class LibraryDoc(object):
         self.inits = []
         self.keywords = []
 
-    @setter
+    @property
+    def data_types(self):
+        return self._data_types
+
+    @data_types.setter
     def data_types(self, data_types):
         self._data_types = dict([(t.name, t)
                                  for t in
@@ -149,9 +153,9 @@ class LibraryDoc(object):
             LibdocWriter(format).write(self, outfile)
 
     def convert_docs_to_html(self):
-        #if self.doc_format == 'HTML':
+        #if self.doc_format == 'HTML': #ToDo there was something weird with <span class=code> when double generate
         #    return
-        formatter = DocFormatter(self.keywords, self.doc, self.doc_format)
+        formatter = DocFormatter(self.keywords, self.data_types_list, self.doc, self.doc_format)
         self._doc = formatter.html(self.doc, intro=True)
         self.doc_format = 'HTML'
         for init in self.inits:

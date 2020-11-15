@@ -45,7 +45,7 @@
     function linkArgs(container, typeNames) {
       container.forEach(function(k) {
           k.args.forEach(function (arg) {
-            arg.linked = arg.type.filter(value => typeNames.includes(value)).length > 0;
+            arg.linked = arg.type.filter(value => typeNames.includes(value));
           })
         }
       );
@@ -323,29 +323,25 @@
               <div class="args">
                 <h4>Arguments</h4>
                 <div class="arguments-list-container">
-                <div class="arguments-list">
-                {{each args}}
-                  <span class="arg-name {{if $value.required}}arg-required{{else}}arg-optional{{/if}}" title="Argument name">{{if $value.kind === 'VAR_POSITIONAL'}}*{{/if}}{{if $value.kind === 'VAR_NAMED'}}**{{/if}}${$value.name}</span>
+                  <div class="arguments-list">
+                  {{each args}}
+                    <span class="arg-name {{if $value.required}}arg-required{{else}}arg-optional{{/if}}" title="Argument name">{{if $value.kind === 'VAR_POSITIONAL'}}*{{/if}}{{if $value.kind === 'VAR_NAMED'}}**{{/if}}${$value.name}</span>
 
-                  {{if $value.default !== null}}
-                  <div class="arg-default-container">
-                  <span class="arg-default-eq">=</span>
-                  <span class="arg-default-value" title="Argument default value">${$value.default}</span>
+                    {{if $value.default !== null}}
+                      <div class="arg-default-container">
+                        <span class="arg-default-eq">=</span>
+                        <span class="arg-default-value" title="Argument default value">${$value.default}</span>
+                      </div>
+                    {{/if}}
+
+                    {{if $value.type.length}}
+                      <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">
+                        ${( $data.linked = $value.linked ),''}
+                        &lt;{{each $value.type}}{{if $data.linked.includes($value)}}<a class="type" href="#${$value}">${$value}</a>{{else}}<span class="type">${$value}</span>{{/if}}{{/each}}&gt;
+                      </span>
+                    {{/if}}
+                  {{/each}}
                   </div>
-                  {{/if}}
-
-                  {{if $value.type}}
-                  <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">
-                  {{if $value.linked}}
-                  &lt;<a href="#${$value.type}">${$value.type}</a>&gt;
-                  {{else}}
-                  &lt;${$value.type}&gt;
-                  {{/if}}
-                  </span>
-                  </span>
-                  {{/if}}
-                {{/each}}
-                </div>
                 </div>
               </div>
           {{/if}}
@@ -441,39 +437,36 @@
               <div class="args">
                 <h4>Arguments</h4>
                 <div class="arguments-list-container">
-                <div class="arguments-list">
-                {{each args}}
-                  <span class="arg-name {{if $value.required}}arg-required{{else}}arg-optional{{/if}}" title="Argument name">{{if $value.kind === 'VAR_POSITIONAL'}}*{{/if}}{{if $value.kind === 'VAR_NAMED'}}**{{/if}}${$value.name}</span>
+                  <div class="arguments-list">
+                  {{each args}}
+                    <span class="arg-name {{if $value.required}}arg-required{{else}}arg-optional{{/if}}" title="Argument name">{{if $value.kind === 'VAR_POSITIONAL'}}*{{/if}}{{if $value.kind === 'VAR_NAMED'}}**{{/if}}${$value.name}</span>
 
-                  {{if $value.default !== null}}
-                  <div class="arg-default-container">
-                  <span class="arg-default-eq">=</span>
-                  <span class="arg-default-value" title="Argument default value">${$value.default}</span>
+                    {{if $value.default !== null}}
+                      <div class="arg-default-container">
+                        <span class="arg-default-eq">=</span>
+                        <span class="arg-default-value" title="Argument default value">${$value.default}</span>
+                      </div>
+                    {{/if}}
+
+                    {{if $value.type.length}}
+                      <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">
+                        ${( $data.linked = $value.linked ),''}
+                        &lt;{{each $value.type}}{{if $data.linked.includes($value)}}<a class="type" href="#${$value}">${$value}</a>{{else}}<span class="type">${$value}</span>{{/if}}{{/each}}&gt;
+                      </span>
+                    {{/if}}
+                  {{/each}}
                   </div>
-                  {{/if}}
-
-                  {{if $value.type}}
-                  <span class="arg-type" title="Argument '${$value.name}' will be converter to type ${$value.type}">
-                  {{if $value.linked}}
-                  &lt;<a href="#${$value.type}">${$value.type}</a>&gt;
-                  {{else}}
-                  &lt;${$value.type}&gt;
-                  {{/if}}
-                  </span>
-                  {{/if}}
-                {{/each}}
-                </div>
                 </div>
               </div>
             {{/if}}
             {{if libdoc.all_tags.length}}
-            <div class="tags">
+              <div class="tags">
                 <h4>Tags</h4>
                 {{each tags}}
-                <a href="javascript:tagSearch('${$value}')"
-                   title="Show keywords with this tag">${$value}</a>{{if $index < tags.length-1}},<br>{{/if}}
+                  <a href="javascript:tagSearch('${$value}')"
+                    title="Show keywords with this tag">${$value}</a>{{if $index < tags.length-1}},<br>{{/if}}
                 {{/each}}
-            </div>
+              </div>
             {{/if}}
           </div>
           {{if doc}}
@@ -507,20 +500,24 @@
           {{if members}}
             <div class="dt-members">
               <h4>Allowed Values</h4>
-              <ul class="data-type-members">
+              <ul class="enum-type-members">
                 {{each members}}
                 <li>
-                  <span>${$value.name}</span>
+                  <span class="enum-member">${$value.name}</span>
                 </li>
                 {{/each}}
               </ul>
             </div>
           {{else items}}
-            <div class="dt-members">
+            <div class="dt-items">
               <h4>Dictionary Structure</h4>
-                <div class="data-type-members">
-                <span class="type-dict-item">
-                 {{{each(key, val) items}}'${key}': <span>&lt;<a href="#${val}">${val}</a>&gt;</span>{{/each}}}
+                <div class="typed-dict-annotation">
+                <span class="typed-dict-item">
+                 {{{each(key, val) items}}<span
+                 class="{{if required_keys.indexOf(key) != -1}}required-key{{else}}optional-key{{/if}}"
+                 title="{{if required_keys.indexOf(key) != -1}}required key{{else}}optional key{{/if}}"
+                 >'${key}': </span>
+                   <span class="td-type">&lt;${val}&gt;</span>{{/each}}}
                 </span>
                 </div>
             </div>
