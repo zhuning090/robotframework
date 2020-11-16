@@ -26,7 +26,7 @@ class LibdocXmlWriter(object):
         self._write_start(libdoc, writer)
         self._write_keywords('inits', 'init', libdoc.inits, libdoc.source, writer)
         self._write_keywords('keywords', 'kw', libdoc.keywords, libdoc.source, writer)
-        self._write_data_types(libdoc.data_types_list, writer)
+        self._write_data_types(libdoc.data_types, writer)
         self._write_end(writer)
 
     def _write_start(self, libdoc, writer):

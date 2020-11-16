@@ -59,26 +59,19 @@ class LibraryDoc(object):
 
     @property
     def data_types(self):
-        return self._data_types
+        return sorted([type_doc for type_doc in self._data_types.values()],
+                      key=lambda type_doc: type_doc.name)
 
     @data_types.setter
     def data_types(self, data_types):
-        self._data_types = dict([(t.name, t)
-                                 for t in
-                                 [self._get_type_doc(_type)
-                                  for _type in data_types]])
+        list_of_type_docs = [self._get_type_doc(_type) for _type in data_types]
+        self._data_types = dict([(t.name, t) for t in list_of_type_docs])
 
     @property
     def doc(self):
         if self.doc_format == 'ROBOT' and '%TOC%' in self._doc:
             return self._add_toc(self._doc)
         return self._doc
-
-    @property
-    def data_types_list(self):
-        return sorted([type_doc
-                       for type_doc in self._data_types.values()],
-                      key=lambda type_dict: type_dict.name)
 
     def _add_toc(self, doc):
         toc = self._create_toc(doc)
@@ -91,7 +84,7 @@ class LibraryDoc(object):
             entries.append('Importing')
         if self.keywords:
             entries.append('Keywords')
-        if self.data_types:
+        if self._data_types:
             entries.append('Data types')
         return '\n'.join('- `%s`' % entry for entry in entries)
 
@@ -133,7 +126,6 @@ class LibraryDoc(object):
 
     def _is_TypedDictType(self, arg_type):
         return (TypedDictType
-                and isclass(arg_type)
                 and isinstance(arg_type, TypedDictType)
                 ) or (
                 isinstance(arg_type, dict)
@@ -155,7 +147,7 @@ class LibraryDoc(object):
             LibdocWriter(format).write(self, outfile)
 
     def convert_docs_to_html(self):
-        formatter = DocFormatter(self.keywords, self.data_types_list, self.doc, self.doc_format)
+        formatter = DocFormatter(self.keywords, self.data_types, self.doc, self.doc_format)
         self._doc = formatter.html(self.doc, intro=True)
         self.doc_format = 'HTML'
         for init in self.inits:
@@ -179,7 +171,7 @@ class LibraryDoc(object):
             'all_tags': list(self.all_tags),
             'inits': [init.to_dictionary() for init in self.inits],
             'keywords': [kw.to_dictionary() for kw in self.keywords],
-            'data_types': [dt.to_dictionary() for dt in self.data_types_list]
+            'data_types': [dt.to_dictionary() for dt in self.data_types]
         }
 
     def to_json(self, indent=None):

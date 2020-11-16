@@ -24,7 +24,7 @@ except ImportError:
 
 try:
     from enum import Enum
-except ImportError:  # Standard in Py 3.4+ but can be separately installed
+except ImportError:    # Standard in Py 3.4+ but can be separately installed
     class Enum(object):
         pass
 
