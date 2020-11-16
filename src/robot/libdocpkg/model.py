@@ -155,8 +155,6 @@ class LibraryDoc(object):
             LibdocWriter(format).write(self, outfile)
 
     def convert_docs_to_html(self):
-        #if self.doc_format == 'HTML': #ToDo there was something weird with <span class=code> when double generate
-        #    return
         formatter = DocFormatter(self.keywords, self.data_types_list, self.doc, self.doc_format)
         self._doc = formatter.html(self.doc, intro=True)
         self.doc_format = 'HTML'
@@ -267,20 +265,14 @@ class KeywordDoc(Sortable):
 
 class TypedDictDoc:
 
-    def __init__(self,
-                 type_info=None,
-                 name='',
-                 super='',
-                 doc='',
-                 items=None,
-                 required_keys=None,
-                 optional_keys=None):
+    def __init__(self, type_info=None, name='', super='', doc='', items=None,
+                 required_keys=None, optional_keys=None):
         self.name = name
         self.super = super
         self.doc = doc
-        self.items = items if items else dict()
-        self.required_keys = required_keys if required_keys else list()
-        self.optional_keys = optional_keys if optional_keys else list()
+        self.items = items or dict()
+        self.required_keys = required_keys or list()
+        self.optional_keys = optional_keys or list()
         if isinstance(type_info, dict):
             self.name = type_info['name']
             self.super = type_info['super']
@@ -319,7 +311,7 @@ class EnumDoc:
         self.name = name
         self.super = super
         self.doc = doc
-        self.members = members if members else list()
+        self.members = members or list()
         if isinstance(type_info, dict):
             self.name = type_info['name']
             self.super = type_info['super']
@@ -328,9 +320,9 @@ class EnumDoc:
         elif isclass(type_info) and issubclass(type_info, Enum):
             self.name = type_info.__name__
             self.super = 'Enum'
-            self.doc = type_info.__doc__ if type_info.__doc__ else ''
-            for name, member in type_info._member_map_.items():
-                self.members.append({'name': name, 'value': unicode(member.value)})
+            self.doc = type_info.__doc__ or ''
+            self.members = [{'name': name, 'value': unicode(member.value)}
+                            for name, member in type_info.__members__.items()]
 
     def to_dictionary(self):
         return {

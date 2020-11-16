@@ -45,7 +45,7 @@
     function linkArgs(container, typeNames) {
       container.forEach(function(k) {
           k.args.forEach(function (arg) {
-            arg.linked = arg.type.filter(value => typeNames.includes(value));
+            arg.linked = arg.type.filter(function(value) {return typeNames.includes(value)});
           })
         }
       );
@@ -514,13 +514,12 @@
             <div class="dt-items">
               <h4>Dictionary Structure</h4>
                 <div class="typed-dict-annotation">
-                <span class="typed-dict-item">
-                 {{{each(key, val) items}}<br><span
+                <span class="typed-dict-item"
+                >{{{each(key, val) items}}<br><span
                  class="td-item {{if required_keys.indexOf(key) != -1}}required-key{{else}}optional-key{{/if}}"
                  title="{{if required_keys.indexOf(key) != -1}}required key{{else}}optional key{{/if}}"
                  >'${key}': </span>
-                   <span class="td-type">&lt;${val}&gt;</span>{{/each}}<br>}
-                </span>
+                   <span class="td-type">&lt;${val}&gt;</span>{{/each}}<br>}</span>
                 </div>
             </div>
           {{/if}}
