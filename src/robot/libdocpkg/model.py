@@ -294,12 +294,7 @@ class TypedDictDoc:
 
 class EnumDoc:
 
-    def __init__(self,
-                 type_info=None,
-                 name='',
-                 super='',
-                 doc='',
-                 members=None):
+    def __init__(self, type_info=None, name='', super='', doc='', members=None):
         self.name = name
         self.super = super
         self.doc = doc
